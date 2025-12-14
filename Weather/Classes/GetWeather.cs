@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Weather.Models;
 
 namespace Weather.Classes
 {
@@ -13,8 +15,10 @@ namespace Weather.Classes
         public static string Key = "demo_yandex_weather_api_key_ca6d09349ba0";
 
        
-        public static async void Get(float lat, float lon)
+        public static async Task< DataResponse> Get(float lat, float lon)
         {
+
+            DataResponse DataResponse = null;
             string url = $"{Url}?lat={lat}&lon={lon}".Replace(",", ".");
             using (HttpClient Client = new HttpClient())
             using (HttpRequestMessage Request = new HttpRequestMessage(
@@ -25,9 +29,11 @@ namespace Weather.Classes
 
                 using (var Response = await Client.SendAsync(Request))
                 {
-                    string DateResponse = await Response.Content.ReadAsStringAsync();
+                    string ContentResponse = await Response.Content.ReadAsStringAsync();
+                    DataResponse = JsonConvert.DeserializeObject<DataResponse>(ContentResponse);
                 }
             }
+            return DataResponse;
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Weather.Classes;
+using Weather.Models;
 
 namespace Weather
 {
@@ -20,7 +21,10 @@ namespace Weather
         public MainWindow()
         {
             InitializeComponent();
-            GetWeather.Get(58.009671f,56.226184f);
+            Iint();
+        }
+        public async void Iint() {
+            DataResponse response = await GetWeather.Get(58.009671f, 56.226184f);
         }
     }
 }
