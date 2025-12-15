@@ -19,37 +19,94 @@ namespace Weather
     /// </summary>
     public partial class MainWindow : Window
     {
-        DataResponse response;
+        private DataResponse _weatherData;
+
         public MainWindow()
         {
             InitializeComponent();
-            Iint();
+            Loaded += async (s, e) => await LoadWeatherAsync();
         }
-        public async void Iint() {
-             response = await GetWeather.Get(58.009671f, 56.226184f);
-            foreach (Forecast forecast in response.forecasts)
-            {
-                Days.Items.Add(forecast.date.ToString("dd.MM.yyyy"));
-            }
-            Create(0);
-        }
-        public void Create(int idForecast)
+
+        private async Task LoadWeatherAsync(string city = "Пермь")
         {
-            parent.Children.Clear();
-            foreach (Hour hour in response.forecasts[idForecast].hours)
+            try
             {
-                parent.Children.Add(new Item(hour));
+                ShowStatus("Загрузка...");
+
+                // Получаем координаты по названию города
+                var (lat, lon) = await GeocodingService.GetCoordinatesAsync(city);
+
+                // Получаем погоду по координатам
+                _weatherData = await GetWeather.Get((float)lat, (float)lon);
+
+                UpdateUI();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                HideStatus();
             }
         }
 
-        private void UpdateWeather(object sender, RoutedEventArgs e)
+        private void UpdateUI()
         {
-            Iint();
+            if (_weatherData?.forecasts == null) return;
+
+            DaysComboBox.Items.Clear();
+            foreach (var forecast in _weatherData.forecasts)
+            {
+                DaysComboBox.Items.Add(forecast.date.ToString("dd.MM.yyyy"));
+            }
+
+            if (DaysComboBox.Items.Count > 0)
+                DaysComboBox.SelectedIndex = 0;
         }
 
-        private void SelectDay(object sender, SelectionChangedEventArgs e)
+        private void ShowForecast(int dayIndex)
         {
-            Create(Days.SelectedIndex);
+            WeatherPanel.Children.Clear();
+
+            if (_weatherData?.forecasts == null ||
+                dayIndex < 0 || dayIndex >= _weatherData.forecasts.Count)
+                return;
+
+            var forecast = _weatherData.forecasts[dayIndex];
+            foreach (var hour in forecast.hours)
+            {
+                WeatherPanel.Children.Add(new Item(hour));
+            }
+        }
+
+        private void ShowStatus(string message)
+        {
+            StatusText.Text = message;
+            StatusText.Visibility = Visibility.Visible;
+            WeatherPanel.Children.Clear();
+        }
+
+        private void HideStatus()
+        {
+            StatusText.Visibility = Visibility.Collapsed;
+        }
+
+        private async void GetWeatherClick(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(CityTextBox.Text))
+            {
+                await LoadWeatherAsync(CityTextBox.Text.Trim());
+            }
+        }
+
+        private void DaySelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DaysComboBox.SelectedIndex >= 0)
+            {
+                ShowForecast(DaysComboBox.SelectedIndex);
+            }
         }
     }
 }

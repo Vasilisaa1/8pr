@@ -24,11 +24,14 @@ namespace Weather.Element
         public Item(Hour hour)
         {
             InitializeComponent();
-            lHour.Content = hour.hour;
-            lCondition.Content = hour.ToCondition();
-            lHumidity.Content = hour.humidity + "%";
-            lPrecType.Content = hour.ToPrecType();
-            lTemp.Content = hour.temp;
+
+            // Используем свойство Text вместо Content для TextBlock
+            lHour.Text = hour.hour;
+            lCondition.Text = hour.ToCondition();
+            lHumidity.Text = hour.humidity + "%";
+            lPrecType.Text = hour.ToPrecType();
+            lTemp.Text = hour.temp.ToString() + "°C";
         }
+    
     }
 }

@@ -9,31 +9,29 @@ using Weather.Models;
 
 namespace Weather.Classes
 {
-    public class GetWeather
-    {
-        public static string Url = "https://api.weather.yandex.ru/v2/forecast";
-        public static string Key = "demo_yandex_weather_api_key_ca6d09349ba0";
-
-       
-        public static async Task< DataResponse> Get(float lat, float lon)
+   
+        public static class GetWeather
         {
+            public static string Url = "https://api.weather.yandex.ru/v2/forecast";
+            public static string Key = "demo_yandex_weather_api_key_ca6d09349ba0"; // Замените на реальный
 
-            DataResponse DataResponse = null;
-            string url = $"{Url}?lat={lat}&lon={lon}".Replace(",", ".");
-            using (HttpClient Client = new HttpClient())
-            using (HttpRequestMessage Request = new HttpRequestMessage(
-                       HttpMethod.Get,
-                     url))
+            public static async Task<DataResponse> Get(float lat, float lon)
             {
-                Request.Headers.Add("X-Yandex-Weather-Key", Key);
+                string url = $"{Url}?lat={lat}&lon={lon}".Replace(",", ".");
 
-                using (var Response = await Client.SendAsync(Request))
+                using (var client = new HttpClient())
                 {
-                    string ContentResponse = await Response.Content.ReadAsStringAsync();
-                    DataResponse = JsonConvert.DeserializeObject<DataResponse>(ContentResponse);
+                    client.DefaultRequestHeaders.Add("X-Yandex-Weather-Key", Key);
+                    client.Timeout = TimeSpan.FromSeconds(10);
+
+                    var response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<DataResponse>(content);
                 }
             }
-            return DataResponse;
         }
-    }
+
+    
 }

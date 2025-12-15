@@ -6,22 +6,26 @@
              xmlns:local="clr-namespace:Weather.Element"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <Grid>
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
+ 
+        <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="10,5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
 
-            </Grid.ColumnDefinitions>
-
-            <Label x:Name="lHour"/>
-            <Label x:Name="lCondition" Grid.Column="1"/>
-            <Label x:Name="lHumidity" Grid.Column="2"/>
-            <Label x:Name="lPrecType" Grid.Column="3"/>
-            <Label x:Name="lTemp" Grid.Column="4"/>
-        </Grid>
-    </Grid>
+                <TextBlock x:Name="lHour" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock x:Name="lCondition" Grid.Column="1" FontSize="14" 
+                       VerticalAlignment="Center"/>
+                <TextBlock x:Name="lHumidity" Grid.Column="2" FontSize="14" 
+                       VerticalAlignment="Center"/>
+                <TextBlock x:Name="lPrecType" Grid.Column="3" FontSize="14" 
+                       VerticalAlignment="Center"/>
+                <TextBlock x:Name="lTemp" Grid.Column="4" FontSize="14" 
+                       VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            </Grid>
+        </Border>
 </UserControl>
