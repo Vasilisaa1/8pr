@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Weather.Classes;
+using Weather.Element;
 using Weather.Models;
 
 namespace Weather
@@ -18,13 +19,37 @@ namespace Weather
     /// </summary>
     public partial class MainWindow : Window
     {
+        DataResponse response;
         public MainWindow()
         {
             InitializeComponent();
             Iint();
         }
         public async void Iint() {
-            DataResponse response = await GetWeather.Get(58.009671f, 56.226184f);
+             response = await GetWeather.Get(58.009671f, 56.226184f);
+            foreach (Forecast forecast in response.forecasts)
+            {
+                Days.Items.Add(forecast.date.ToString("dd.MM.yyyy"));
+            }
+            Create(0);
+        }
+        public void Create(int idForecast)
+        {
+            parent.Children.Clear();
+            foreach (Hour hour in response.forecasts[idForecast].hours)
+            {
+                parent.Children.Add(new Item(hour));
+            }
+        }
+
+        private void UpdateWeather(object sender, RoutedEventArgs e)
+        {
+            Iint();
+        }
+
+        private void SelectDay(object sender, SelectionChangedEventArgs e)
+        {
+            Create(Days.SelectedIndex);
         }
     }
 }
