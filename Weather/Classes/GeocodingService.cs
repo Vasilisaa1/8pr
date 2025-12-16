@@ -1,40 +1,48 @@
 ﻿
 using System.Net.Http;
+using System.Windows;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Weather.Models;
 
 namespace Weather.Classes
 {
     public static class GeocodingService
     {
-        private static readonly string GeocodingUrl = "https://api.weather.yandex.ru/v2/forecast";
-        private static readonly string ApiKey = "cf722107-8ced-4c06-b5ca-3a2957ac17c7"; // Замените на реальный ключ
+        public static string ApiKey = "e69374b5-3e13-4228-8235-6bb574aa5cc4";
 
-        public static async Task<(double lat, double lon)> GetCoordinatesAsync(string city)
+        public static async Task<(float lat, float lon)> GetCoordinates(string city)
         {
-            if (string.IsNullOrWhiteSpace(city))
-                throw new ArgumentException("Название города не может быть пустым");
-
-            string url = $"{GeocodingUrl}?apikey={ApiKey}&geocode={Uri.EscapeDataString(city)}&format=json";
-
-            using (var client = new HttpClient())
+            try
             {
-                var response = await client.GetStringAsync(url);
-                var geocodingResponse = JsonConvert.DeserializeObject<GeocodingResponse>(response);
+                string url = $"https://geocode-maps.yandex.ru/1.x/?apikey={ApiKey}&geocode={city}&format=json";
 
-                if (geocodingResponse?.Response?.GeoObjectCollection?.FeatureMember?.Count > 0)
+                using (HttpClient client = new HttpClient())
                 {
-                    var pos = geocodingResponse.Response.GeoObjectCollection.FeatureMember[0]
-                        .GeoObject.Point.Position;
+                    var response = await client.GetStringAsync(url);
+                    var json = JObject.Parse(response);
 
-                    var coords = pos.Split(' ');
-                    if (coords.Length == 2)
+                    var featureMember = json["response"]?["GeoObjectCollection"]?["featureMember"];
+
+                    if (featureMember == null || !featureMember.Any())
                     {
-                        return (double.Parse(coords[1]), double.Parse(coords[0])); // Широта, Долгота
-                    }
-                }
 
-                throw new Exception("Координаты для указанного города не найдены");
+                        return (0, 0);
+                    }
+
+                    var pos = json["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"].ToString();
+                    string[] coords = pos.Split(' ');
+
+                    float lon = Convert.ToSingle(coords[0].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture);
+                    float lat = Convert.ToSingle(coords[1].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture);
+
+                    return (lat, lon);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка геокодера: {ex.Message}");
+                return (0, 0);
             }
         }
     }

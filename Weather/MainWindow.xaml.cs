@@ -34,7 +34,7 @@ namespace Weather
                 ShowStatus("Загрузка...");
 
                 // Получаем координаты по названию города
-                var (lat, lon) = await GeocodingService.GetCoordinatesAsync(city);
+                var (lat, lon) = await GeocodingService.GetCoordinates(city);
 
                 // Получаем погоду по координатам
                 _weatherData = await GetWeather.Get((float)lat, (float)lon);
