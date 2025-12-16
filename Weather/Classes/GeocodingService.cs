@@ -29,7 +29,7 @@ namespace Weather.Classes
 
                         return (0, 0);
                     }
-
+                    
                     var pos = json["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"].ToString();
                     string[] coords = pos.Split(' ');
 
