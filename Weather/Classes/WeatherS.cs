@@ -11,21 +11,25 @@ namespace Weather.Classes
 {
     public class WeatherS
     {
-        private const int DailyLimit = 3;
+        private const int DailyLimit = 50; // лимит в день
 
         public static async Task<DataResponse> GetWeatherCached(string city)
         {
             using (var db = new WDB())
             {
+                // 1. Пробуем взять из кэша
                 var cache = db.Cache.FirstOrDefault(x => x.City == city);
 
                 if (cache != null && (DateTime.Now - cache.Save).TotalHours < 1)
                 {
+                    // данные свежие – возвращаем из БД
                     return JsonConvert.DeserializeObject<DataResponse>(cache.Dataa);
                 }
-                var today = DateTime.Today;
 
+                // 2. Проверяем лимит на сегодня
+                var today = DateTime.Today;
                 var usage = db.ApiUsage.FirstOrDefault(x => x.Day == today);
+
                 if (usage == null)
                 {
                     usage = new ApiWeather { Day = today, Count = 0 };
@@ -33,12 +37,22 @@ namespace Weather.Classes
                 }
 
                 if (usage.Count >= DailyLimit)
-                    throw new Exception("Лимит запросов на сегодня исчерпан");
+                {
+                    throw new Exception($"Лимит {DailyLimit} запросов на сегодня исчерпан");
+                }
+
+                // 3. Идём во внешние API
                 var (lat, lon) = await GeocodingService.GetCoordinates(city);
+                if (lat == 0 && lon == 0)
+                    throw new Exception("Город не найден");
+
                 var data = await GetWeather.Get(lat, lon);
 
+                // 4. Увеличиваем счётчик запросов
                 usage.Count++;
                 db.SaveChanges();
+
+                // 5. Обновляем кэш в БД
                 if (cache == null)
                 {
                     cache = new Cash
@@ -53,6 +67,8 @@ namespace Weather.Classes
                 }
                 else
                 {
+                    cache.Lat = lat;
+                    cache.Lon = lon;
                     cache.Dataa = JsonConvert.SerializeObject(data);
                     cache.Save = DateTime.Now;
                 }

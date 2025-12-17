@@ -33,16 +33,14 @@ namespace Weather
             {
                 ShowStatus("Загрузка...");
 
-                // Получаем координаты по названию города
-                var (lat, lon) = await GeocodingService.GetCoordinates(city);
-
-                // Получаем погоду по координатам
-                _weatherData = await GetWeather.Get((float)lat, (float)lon);
+                // ВАЖНО: тут теперь один вызов в наш сервис с БД и лимитами
+                _weatherData = await WeatherS.GetWeatherCached(city);
 
                 UpdateUI();
             }
             catch (Exception ex)
             {
+                ShowStatus($"Ошибка: {ex.Message}");
                 MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -90,7 +88,7 @@ namespace Weather
 
         private void HideStatus()
         {
-            StatusText.Visibility = Visibility.Collapsed;
+            StatusText.Visibility = System.Windows.Visibility.Collapsed;
         }
 
         private async void GetWeatherClick(object sender, RoutedEventArgs e)
